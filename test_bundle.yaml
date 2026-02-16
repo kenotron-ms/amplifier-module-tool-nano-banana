@@ -1,0 +1,7 @@
+# Test bundle to verify nano-banana tool loads
+
+tools:
+  - module: tool-nano-banana
+    
+# Test in session:
+# > Use nano-banana to analyze mockups/test.png: "What do you see?"
