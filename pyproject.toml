@@ -23,6 +23,7 @@ classifiers = [
 
 dependencies = [
     "google-genai>=1.0.0",
+    "amplifier-core>=1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -37,6 +38,9 @@ dev = [
 Homepage = "https://github.com/microsoft/amplifier-module-tool-nano-banana"
 Repository = "https://github.com/microsoft/amplifier-module-tool-nano-banana"
 Issues = "https://github.com/microsoft/amplifier-module-tool-nano-banana/issues"
+
+[project.entry-points."amplifier.modules"]
+tool-nano-banana = "amplifier_module_tool_nano_banana:mount"
 
 [tool.hatch.build.targets.wheel]
 packages = ["amplifier_module_tool_nano_banana"]
