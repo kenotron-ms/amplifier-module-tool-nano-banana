@@ -44,10 +44,11 @@ class NanoBananaTool:
     @property
     def description(self) -> str:
         return (
-            "Nano Banana Pro VLM for visual analysis and comparison. "
-            "Operations: analyze (single image) | compare (two images). "
-            "Use for mockup analysis, screenshot comparison, "
-            "component identification, typography analysis, and iterative refinement."
+            "Nano Banana Pro VLM for visual analysis, comparison, and generation. "
+            "Operations: analyze (single image) | compare (two images) | "
+            "generate (create images). "
+            "Use for mockup analysis, screenshot comparison, component identification, "
+            "typography analysis, iterative refinement, and image generation."
         )
 
     @property
@@ -57,12 +58,15 @@ class NanoBananaTool:
             "properties": {
                 "operation": {
                     "type": "string",
-                    "enum": ["analyze", "compare"],
-                    "description": "Operation: analyze (single image) or compare (two images)",
+                    "enum": ["analyze", "compare", "generate"],
+                    "description": (
+                        "Operation: analyze (single image), compare (two images), "
+                        "or generate (create image)"
+                    ),
                 },
                 "prompt": {
                     "type": "string",
-                    "description": "Analysis or comparison prompt/question",
+                    "description": "Analysis, comparison, or generation prompt/question",
                 },
                 "image_path": {
                     "type": "string",
@@ -90,6 +94,20 @@ class NanoBananaTool:
                     "type": "string",
                     "description": "Label for second image (default: 'IMAGE 2')",
                     "default": "IMAGE 2",
+                },
+                "output_path": {
+                    "type": "string",
+                    "description": (
+                        "Output path for generated image (required for generate operation). "
+                        "Supports .png and .jpg/.jpeg extensions."
+                    ),
+                },
+                "number_of_images": {
+                    "type": "integer",
+                    "description": "Number of images to generate (default: 1, max: 4)",
+                    "default": 1,
+                    "minimum": 1,
+                    "maximum": 4,
                 },
             },
             "required": ["operation", "prompt"],
@@ -236,8 +254,96 @@ class NanoBananaTool:
                 logger.info(f"VLM comparison completed for {image1_path} vs {image2_path}")
                 return ToolResult(success=True, output={"comparison": response.text})
 
+            elif operation == "generate":
+                output_path_str = input_data.get("output_path")
+                if not output_path_str:
+                    error_msg = "output_path required for generate operation"
+                    return ToolResult(success=False, output=error_msg, error={"message": error_msg})
+
+                # Resolve output path
+                output_path = self._resolve_path(output_path_str)
+
+                # Get number of images to generate
+                number_of_images = input_data.get("number_of_images", 1)
+                if number_of_images < 1 or number_of_images > 4:
+                    error_msg = "number_of_images must be between 1 and 4"
+                    return ToolResult(success=False, output=error_msg, error={"message": error_msg})
+
+                # Emit event before generation
+                await self.coordinator.hooks.emit(
+                    "tool.vlm.generate",
+                    {
+                        "output_path": str(output_path),
+                        "model": "gemini-2.5-flash-image",
+                        "prompt_length": len(prompt),
+                        "number_of_images": number_of_images,
+                    },
+                )
+
+                # Generate image(s) using Gemini
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash-image",
+                    contents=[prompt],
+                )
+
+                # Process generated images
+                generated_paths = []
+                image_count = 0
+
+                for part in response.parts:
+                    if part.inline_data is not None:
+                        # Get the image data
+                        image_data = part.inline_data.data
+
+                        # Determine output path for this image
+                        if number_of_images == 1:
+                            current_output = output_path
+                        else:
+                            # For multiple images, add suffix: image_1.png, image_2.png, etc.
+                            stem = output_path.stem
+                            suffix = output_path.suffix
+                            current_output = (
+                                output_path.parent / f"{stem}_{image_count + 1}{suffix}"
+                            )
+
+                        # Ensure parent directory exists
+                        current_output.parent.mkdir(parents=True, exist_ok=True)
+
+                        # Save the image
+                        with open(current_output, "wb") as f:
+                            f.write(image_data)
+
+                        generated_paths.append(str(current_output))
+                        image_count += 1
+
+                        # Stop if we've generated enough images
+                        if image_count >= number_of_images:
+                            break
+
+                if not generated_paths:
+                    error_msg = "No images were generated by the model"
+                    logger.error(error_msg)
+                    return ToolResult(success=False, output=error_msg, error={"message": error_msg})
+
+                logger.info(f"Generated {len(generated_paths)} image(s)")
+
+                result_output = {
+                    "generated_images": generated_paths,
+                    "count": len(generated_paths),
+                }
+
+                # Include any text response from the model
+                for part in response.parts:
+                    if part.text is not None:
+                        result_output["text"] = part.text
+                        break
+
+                return ToolResult(success=True, output=result_output)
+
             else:
-                error_msg = f"Unknown operation: {operation}. Use 'analyze' or 'compare'"
+                error_msg = (
+                    f"Unknown operation: {operation}. Use 'analyze', 'compare', or 'generate'"
+                )
                 return ToolResult(success=False, output=error_msg, error={"message": error_msg})
 
         except FileNotFoundError as e:
