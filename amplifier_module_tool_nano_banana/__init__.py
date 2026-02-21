@@ -1,11 +1,12 @@
 """
 Amplifier Tool: Nano Banana Pro
 
-VLM tool for mockup-to-code workflows.
+VLM tool for mockup-to-code workflows with image generation capabilities.
 
 Capabilities:
 - analyze: Single image analysis (identify components, fonts, colors, etc.)
 - compare: Two image comparison (mockup vs implementation, match %, issues)
+- generate: Create images from text descriptions using Gemini's image generation
 
 Independent implementation - not dependent on upstream image-generation module.
 """
