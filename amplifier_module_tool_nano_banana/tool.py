@@ -274,15 +274,15 @@ class NanoBananaTool:
                     "tool.vlm.generate",
                     {
                         "output_path": str(output_path),
-                        "model": "gemini-2.5-flash-image",
+                        "model": self.model,
                         "prompt_length": len(prompt),
                         "number_of_images": number_of_images,
                     },
                 )
 
-                # Generate image(s) using Gemini
+                # Generate image(s) using Gemini (Nano Banana Pro)
                 response = client.models.generate_content(
-                    model="gemini-2.5-flash-image",
+                    model=self.model,
                     contents=[prompt],
                 )
 
