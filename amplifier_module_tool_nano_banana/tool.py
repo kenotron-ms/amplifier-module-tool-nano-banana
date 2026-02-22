@@ -15,11 +15,12 @@ class NanoBananaTool:
     """
     Nano Banana Pro VLM tool for Amplifier.
 
-    Provides visual analysis and comparison capabilities using Google's Gemini VLM.
+    Provides visual analysis, comparison, and generation capabilities using Google's Gemini VLM.
 
     Operations:
     - analyze: Analyze single image (components, fonts, colors, layout)
     - compare: Compare two images (match %, differences, issues)
+    - generate: Create images from text prompt, optionally guided by a reference image
     """
 
     def __init__(self, config: dict[str, Any], coordinator: ModuleCoordinator):
@@ -46,7 +47,7 @@ class NanoBananaTool:
         return (
             "Nano Banana Pro VLM for visual analysis, comparison, and generation. "
             "Operations: analyze (single image) | compare (two images) | "
-            "generate (create images). "
+            "generate (create images from text, optionally with reference image). "
             "Use for mockup analysis, screenshot comparison, component identification, "
             "typography analysis, iterative refinement, and image generation."
         )
@@ -108,6 +109,13 @@ class NanoBananaTool:
                     "default": 1,
                     "minimum": 1,
                     "maximum": 4,
+                },
+                "reference_image_path": {
+                    "type": "string",
+                    "description": (
+                        "Optional reference image for generate operation. "
+                        "Use to guide style, composition, or content of generated image."
+                    ),
                 },
             },
             "required": ["operation", "prompt"],
@@ -269,21 +277,45 @@ class NanoBananaTool:
                     error_msg = "number_of_images must be between 1 and 4"
                     return ToolResult(success=False, output=error_msg, error={"message": error_msg})
 
+                # Check for optional reference image
+                reference_image_path_str = input_data.get("reference_image_path")
+                reference_image_data = None
+                reference_mime_type = None
+
+                if reference_image_path_str:
+                    reference_image_path = self._resolve_path(reference_image_path_str)
+                    with open(reference_image_path, "rb") as f:
+                        reference_image_data = f.read()
+                    reference_mime_type = self._get_mime_type(reference_image_path)
+
                 # Emit event before generation
-                await self.coordinator.hooks.emit(
-                    "tool.vlm.generate",
-                    {
-                        "output_path": str(output_path),
-                        "model": self.model,
-                        "prompt_length": len(prompt),
-                        "number_of_images": number_of_images,
-                    },
-                )
+                event_data = {
+                    "output_path": str(output_path),
+                    "model": self.model,
+                    "prompt_length": len(prompt),
+                    "number_of_images": number_of_images,
+                }
+                if reference_image_path_str:
+                    event_data["reference_image_path"] = str(reference_image_path)
+
+                await self.coordinator.hooks.emit("tool.vlm.generate", event_data)
+
+                # Build contents array for generation
+                contents = [prompt]
+                if reference_image_data:
+                    contents.append(
+                        {
+                            "inline_data": {
+                                "mime_type": reference_mime_type,
+                                "data": reference_image_data,
+                            }
+                        }
+                    )
 
                 # Generate image(s) using Gemini (Nano Banana Pro)
                 response = client.models.generate_content(
                     model=self.model,
-                    contents=[prompt],
+                    contents=contents,
                 )
 
                 # Process generated images
