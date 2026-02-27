@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nano Banana Pro: Visual Intelligence for AI Sessions</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --banana: #F5C518;
+            --banana-dark: #D4A800;
+            --banana-pale: #FEF9E7;
+            --ink: #1A1A1A;
+            --ink-mid: #3D3D3D;
+            --ink-soft: #6B6B6B;
+            --white: #FAFAFA;
+            --surface: #FFFFFF;
+            --code-bg: #1E1E1E;
+            --code-fg: #D4D4D4;
+            --green: #2ECC71;
+            --red: #E74C3C;
+            --blue: #3498DB;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: var(--ink);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            color: var(--ink);
+            overflow: hidden;
+        }
+
+        /* ── Slide container ── */
+        .slide {
+            display: none;
+            width: 100vw;
+            min-height: 100vh;
+            padding: clamp(48px, 8vw, 100px) clamp(24px, 6vw, 100px) clamp(72px, 10vh, 120px);
+            flex-direction: column;
+            justify-content: flex-start;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: var(--white);
+        }
+        .slide.active { display: flex; }
+
+        /* Title slides get centered treatment */
+        .slide.center {
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        /* Dark slides */
+        .slide.dark {
+            background: var(--ink);
+            color: var(--white);
+        }
+        .slide.dark .section-label { color: var(--banana); border-color: var(--banana-dark); }
+        .slide.dark .headline { color: var(--white); }
+        .slide.dark .subhead  { color: rgba(255,255,255,0.75); }
+        .slide.dark .body     { color: rgba(255,255,255,0.80); }
+        .slide.dark .card     { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); }
+        .slide.dark .card h3  { color: var(--white); }
+        .slide.dark .card p   { color: rgba(255,255,255,0.70); }
+
+        /* Banana accent slides */
+        .slide.banana {
+            background: var(--banana);
+            color: var(--ink);
+        }
+        .slide.banana .section-label { color: var(--ink-mid); border-color: rgba(0,0,0,0.25); }
+        .slide.banana .headline { color: var(--ink); }
+
+        /* ── Typography ── */
+        .section-label {
+            font-size: clamp(0.65rem, 1.2vw, 0.8rem);
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            border-left: 3px solid var(--banana);
+            padding-left: 0.6em;
+            margin-bottom: clamp(16px, 3vh, 28px);
+        }
+        .headline {
+            font-size: clamp(2rem, 5.5vw, 4.2rem);
+            font-weight: 800;
+            line-height: 1.1;
+            color: var(--ink);
+            margin-bottom: clamp(12px, 2vh, 20px);
+            letter-spacing: -0.02em;
+        }
+        .medium-headline {
+            font-size: clamp(1.4rem, 3.5vw, 2.6rem);
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--ink);
+            margin-bottom: clamp(10px, 2vh, 18px);
+            letter-spacing: -0.015em;
+        }
+        .subhead {
+            font-size: clamp(1rem, 2vw, 1.4rem);
+            font-weight: 400;
+            line-height: 1.5;
+            color: var(--ink-mid);
+            margin-bottom: clamp(8px, 1.5vh, 14px);
+            max-width: 52ch;
+        }
+        .body {
+            font-size: clamp(0.9rem, 1.6vw, 1.1rem);
+            line-height: 1.7;
+            color: var(--ink-mid);
+            max-width: 64ch;
+        }
+        .small-text {
+            font-size: clamp(0.75rem, 1.2vw, 0.88rem);
+            color: var(--ink-soft);
+            line-height: 1.6;
+        }
+        .highlight { color: var(--banana-dark); font-weight: 700; }
+        .em { font-style: italic; }
+
+        /* ── Cards / grids ── */
+        .thirds {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+            gap: clamp(12px, 2vw, 24px);
+            margin-top: clamp(20px, 3vh, 36px);
+        }
+        .halves {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+            gap: clamp(12px, 2vw, 24px);
+            margin-top: clamp(20px, 3vh, 36px);
+        }
+        .card {
+            background: var(--banana-pale);
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 12px;
+            padding: clamp(16px, 2.5vw, 28px);
+        }
+        .card .icon {
+            font-size: clamp(1.8rem, 3vw, 2.4rem);
+            margin-bottom: 12px;
+            display: block;
+        }
+        .card h3 {
+            font-size: clamp(0.95rem, 1.6vw, 1.15rem);
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 8px;
+        }
+        .card p {
+            font-size: clamp(0.82rem, 1.3vw, 0.95rem);
+            color: var(--ink-mid);
+            line-height: 1.6;
+        }
+        .card.accent {
+            background: var(--banana);
+            border-color: var(--banana-dark);
+        }
+        .card.dark-card {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.12);
+        }
+        .card.dark-card h3 { color: var(--white); }
+        .card.dark-card p  { color: rgba(255,255,255,0.70); }
+
+        /* ── Code blocks ── */
+        .code-block {
+            background: var(--code-bg);
+            color: var(--code-fg);
+            font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+            font-size: clamp(0.72rem, 1.3vw, 0.9rem);
+            border-radius: 10px;
+            padding: clamp(14px, 2vw, 24px);
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin-top: clamp(16px, 2.5vh, 28px);
+            line-height: 1.6;
+        }
+        .code-comment { color: #6A9955; }
+        .code-key     { color: #9CDCFE; }
+        .code-val     { color: #CE9178; }
+        .code-op      { color: #569CD6; }
+        .code-banana  { color: #F5C518; font-weight: 700; }
+
+        /* ── Metrics ── */
+        .metric-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: clamp(16px, 3vw, 40px);
+            margin-top: clamp(20px, 3vh, 36px);
+        }
+        .metric {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .metric-number {
+            font-size: clamp(2.4rem, 6vw, 5rem);
+            font-weight: 900;
+            line-height: 1;
+            color: var(--banana-dark);
+            letter-spacing: -0.03em;
+        }
+        .metric-label {
+            font-size: clamp(0.78rem, 1.3vw, 0.9rem);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--ink-soft);
+        }
+
+        /* ── Loop diagram ── */
+        .loop {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: clamp(8px, 1.5vw, 16px);
+            margin-top: clamp(20px, 3vh, 36px);
+        }
+        .loop-step {
+            background: var(--banana-pale);
+            border: 1.5px solid var(--banana-dark);
+            border-radius: 8px;
+            padding: 10px 18px;
+            font-size: clamp(0.8rem, 1.4vw, 0.95rem);
+            font-weight: 700;
+            color: var(--ink);
+            white-space: nowrap;
+        }
+        .loop-arrow {
+            font-size: clamp(1rem, 2vw, 1.4rem);
+            color: var(--banana-dark);
+            font-weight: 700;
+        }
+
+        /* ── Op badge ── */
+        .op-badge {
+            display: inline-block;
+            background: var(--banana);
+            color: var(--ink);
+            font-size: clamp(0.65rem, 1.1vw, 0.78rem);
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border-radius: 4px;
+            padding: 3px 9px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        .op-badge.analyze { background: #3498DB; color: white; }
+        .op-badge.compare { background: #9B59B6; color: white; }
+        .op-badge.generate { background: var(--banana); color: var(--ink); }
+
+        /* ── Navigation ── */
+        .nav {
+            position: fixed;
+            bottom: clamp(16px, 3vh, 28px);
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+        .nav-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            border: none;
+            padding: 0;
+        }
+        .nav-dot.active {
+            background: var(--banana-dark);
+            transform: scale(1.3);
+        }
+        .slide.dark ~ * .nav-dot,
+        .slide.banana ~ * .nav-dot { background: rgba(255,255,255,0.35); }
+
+        .slide-counter {
+            position: fixed;
+            bottom: clamp(16px, 3vh, 28px);
+            right: clamp(20px, 4vw, 40px);
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: rgba(0,0,0,0.35);
+            z-index: 100;
+        }
+
+        .more-stories {
+            position: fixed;
+            top: clamp(14px, 2.5vh, 22px);
+            right: clamp(20px, 4vw, 40px);
+            font-size: clamp(0.72rem, 1.2vw, 0.82rem);
+            font-weight: 600;
+            color: var(--ink-soft);
+            text-decoration: none;
+            letter-spacing: 0.04em;
+            border: 1px solid rgba(0,0,0,0.15);
+            padding: 5px 14px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(8px);
+            transition: background 0.15s;
+            z-index: 100;
+        }
+        .more-stories:hover { background: var(--banana-pale); }
+
+        /* ── CTA ── */
+        .cta-block {
+            display: flex;
+            flex-wrap: wrap;
+            gap: clamp(10px, 1.5vw, 16px);
+            margin-top: clamp(24px, 4vh, 40px);
+        }
+        .btn {
+            display: inline-block;
+            padding: clamp(10px, 1.5vw, 14px) clamp(18px, 2.5vw, 28px);
+            border-radius: 8px;
+            font-size: clamp(0.82rem, 1.4vw, 0.95rem);
+            font-weight: 700;
+            text-decoration: none;
+            transition: opacity 0.15s;
+            cursor: pointer;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn-primary { background: var(--banana); color: var(--ink); }
+        .btn-secondary { background: rgba(0,0,0,0.07); color: var(--ink); border: 1px solid rgba(0,0,0,0.15); }
+
+        /* ── Sources table ── */
+        .sources-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .sources-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: clamp(0.78rem, 1.2vw, 0.88rem);
+            color: rgba(255,255,255,0.70);
+            line-height: 1.5;
+        }
+        .sources-list li::before {
+            content: "→";
+            color: var(--banana);
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        code {
+            font-family: 'SF Mono', monospace;
+            font-size: 0.9em;
+            background: rgba(245,197,24,0.15);
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+        .slide.dark code {
+            background: rgba(245,197,24,0.20);
+            color: var(--banana);
+        }
+
+        /* ── Landscape compact ── */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .slide { padding: 16px clamp(20px, 5vw, 60px) 56px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 1 · Title
+════════════════════════════════════════════ -->
+<div class="slide active dark center">
+    <div class="section-label">Tool Module · nano-banana</div>
+    <h1 class="headline">Your AI has been<br>flying blind.</h1>
+    <p class="subhead" style="color:rgba(255,255,255,0.70); text-align:center; max-width:46ch;">
+        You describe images with words. Your AI generates code it cannot see.
+        The gap between mockup and implementation is pure guesswork.
+    </p>
+    <div style="margin-top: clamp(28px,4vh,48px); display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+        <span class="op-badge analyze">analyze</span>
+        <span class="op-badge compare">compare</span>
+        <span class="op-badge generate">generate</span>
+    </div>
+    <p class="small-text" style="margin-top: clamp(28px,4vh,48px); color:rgba(255,255,255,0.35);">
+        February 2026
+    </p>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 2 · Problem — text is a lossy codec
+════════════════════════════════════════════ -->
+<div class="slide">
+    <div class="section-label">The Problem</div>
+    <h2 class="headline">Text is a lossy codec<br>for visual information.</h2>
+    <p class="subhead">
+        When you hand an AI a design mockup, everything that matters —
+        spacing, hierarchy, weight, color, proportion — survives only as
+        approximation in your description.
+    </p>
+    <div class="thirds">
+        <div class="card">
+            <span class="icon">🔤</span>
+            <h3>"It should look like the mockup"</h3>
+            <p>The most common instruction in UI work. Also the most ambiguous.
+               Font weights, spacing rhythm, and shadow depth don't survive this translation.</p>
+        </div>
+        <div class="card">
+            <span class="icon">🎯</span>
+            <h3>Precision lost at every step</h3>
+            <p>Describe → implement → screenshot → describe again. Each round trip
+               through language bleeds fidelity. Small deviations compound silently.</p>
+        </div>
+        <div class="card">
+            <span class="icon">🔁</span>
+            <h3>The cycle never closes</h3>
+            <p>Without a way to actually <em>see</em> both images and name
+               every difference, iteration is infinite. You're polishing by
+               feel, not by fact.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 3 · Problem — generation without sight
+════════════════════════════════════════════ -->
+<div class="slide dark">
+    <div class="section-label">The Problem, Continued</div>
+    <h2 class="headline">Generation without<br>sight is decoration.</h2>
+    <p class="subhead" style="color:rgba(255,255,255,0.70); max-width:52ch;">
+        Image generation tools can make things. But they can't analyze what
+        they made. They can't compare it to what you wanted.
+        They can't close the loop.
+    </p>
+    <div class="halves" style="margin-top: clamp(20px,3vh,36px);">
+        <div class="card dark-card">
+            <h3>Tools that only generate</h3>
+            <p>You prompt. You get an image. You look at it. You describe
+               what's wrong. You prompt again. Your AI still hasn't seen
+               either image.</p>
+        </div>
+        <div class="card dark-card">
+            <h3>The missing half</h3>
+            <p>Visual intelligence means <em>reading</em> images with precision,
+               <em>comparing</em> them with rigor, and <em>generating</em> with
+               real visual context — not just words about images.</p>
+        </div>
+    </div>
+    <p class="body" style="color:rgba(255,255,255,0.55); margin-top: clamp(20px,3vh,36px);">
+        Three operations. One tool. The complete visual loop.
+    </p>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 4 · Solution intro
+════════════════════════════════════════════ -->
+<div class="slide banana center">
+    <div class="section-label">The Solution</div>
+    <h2 class="headline">Give your AI<br>three new senses.</h2>
+    <p class="subhead" style="max-width:48ch;">
+        <strong>nano-banana</strong> is a lean Amplifier tool module that wraps
+        Gemini's vision capabilities into three precise, composable operations.
+    </p>
+    <div class="metric-row" style="justify-content:center;">
+        <div class="metric">
+            <span class="metric-number" style="color:var(--ink);">3</span>
+            <span class="metric-label">operations</span>
+        </div>
+        <div class="metric">
+            <span class="metric-number" style="color:var(--ink);">~150</span>
+            <span class="metric-label">lines of core code</span>
+        </div>
+        <div class="metric">
+            <span class="metric-number" style="color:var(--ink);">1</span>
+            <span class="metric-label">tool, zero drift</span>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 5 · Solution — Analyze
+════════════════════════════════════════════ -->
+<div class="slide">
+    <div class="section-label">Operation 1</div>
+    <h2 class="medium-headline">
+        <span class="op-badge analyze">analyze</span>
+        Give your AI eyes.
+    </h2>
+    <p class="subhead">
+        Point at any image. Get a precise, structured description of exactly
+        what is there — components, typography, spacing, hierarchy, color.
+        No approximation. No verbal relay.
+    </p>
+    <div class="code-block"><span class="code-comment"># Identify every UI component with semantic names</span>
+<span class="code-banana">nano-banana</span> <span class="code-key">operation</span>=<span class="code-val">"analyze"</span>
+            <span class="code-key">image_path</span>=<span class="code-val">"design/dashboard-mockup.png"</span>
+            <span class="code-key">prompt</span>=<span class="code-val">"List all UI components with semantic names
+                   and exact layout positions. Note font
+                   weights, spacing units, and color values."</span></div>
+    <div class="halves" style="margin-top: clamp(20px,3vh,32px);">
+        <div class="card">
+            <h3>Typography forensics</h3>
+            <p>Font families, weights, sizes, line heights — extracted and named.
+               "Inter 600 at 28px with 1.2 line-height" not "a large heading."</p>
+        </div>
+        <div class="card">
+            <h3>Component inventory</h3>
+            <p><code>ArticleCard</code>, not just <code>Card</code>.
+               <code>PrimaryActionButton</code>, not just <code>button</code>.
+               Semantic names your code can match.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 6 · Solution — Compare
+════════════════════════════════════════════ -->
+<div class="slide">
+    <div class="section-label">Operation 2</div>
+    <h2 class="medium-headline">
+        <span class="op-badge compare">compare</span>
+        See every difference.
+    </h2>
+    <p class="subhead">
+        Two images in. A precise diff out. Every spacing deviation, color
+        drift, weight mismatch, and missing element — named and located.
+        This is the operation that closes the loop.
+    </p>
+    <div class="code-block"><span class="code-comment"># Validate implementation against mockup</span>
+<span class="code-banana">nano-banana</span> <span class="code-key">operation</span>=<span class="code-val">"compare"</span>
+            <span class="code-key">image1_path</span>=<span class="code-val">"design/mockup.png"</span>
+            <span class="code-key">image2_path</span>=<span class="code-val">"screenshots/current.png"</span>
+            <span class="code-key">image1_label</span>=<span class="code-val">"DESIGN TARGET"</span>
+            <span class="code-key">image2_label</span>=<span class="code-val">"CURRENT IMPLEMENTATION"</span>
+            <span class="code-key">prompt</span>=<span class="code-val">"Identify every visual discrepancy.
+                   Be specific: exact element, what differs,
+                   and estimated magnitude of the difference."</span></div>
+    <p class="body" style="margin-top: clamp(16px,2.5vh,28px);">
+        Used for mockup vs implementation, before vs after, font option A vs B —
+        any two-image comparison where <span class="highlight">precision beats approximation.</span>
+    </p>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 7 · Solution — Generate
+════════════════════════════════════════════ -->
+<div class="slide">
+    <div class="section-label">Operation 3</div>
+    <h2 class="medium-headline">
+        <span class="op-badge generate">generate</span>
+        Create with context.
+    </h2>
+    <p class="subhead">
+        Text-to-image generation that understands what you've already built.
+        Pass a reference image and the generator doesn't start from nothing —
+        it starts from your visual language.
+    </p>
+    <div class="code-block"><span class="code-comment"># Generate with reference image to guide style</span>
+<span class="code-banana">nano-banana</span> <span class="code-key">operation</span>=<span class="code-val">"generate"</span>
+            <span class="code-key">output_path</span>=<span class="code-val">"assets/hero-illustration.png"</span>
+            <span class="code-key">reference_image_path</span>=<span class="code-val">"assets/existing-style.png"</span>
+            <span class="code-key">prompt</span>=<span class="code-val">"A dashboard overview screen in the same
+                   visual style. Warm tones, clean sans-serif,
+                   data cards with subtle shadows."</span>
+            <span class="code-key">number_of_images</span>=<span class="code-val">3</span></div>
+    <div class="halves" style="margin-top: clamp(16px,2.5vh,28px);">
+        <div class="card">
+            <h3>Reference-guided generation</h3>
+            <p>Your existing visual language shapes the output.
+               Style, composition, and tone carry forward — not just the prompt.</p>
+        </div>
+        <div class="card">
+            <h3>Up to 4 variants per call</h3>
+            <p>Generate multiple options in one shot. Compare them with
+               <code>analyze</code>. Pick, refine, iterate — all inside
+               your Amplifier session.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 8 · Solution — The Loop
+════════════════════════════════════════════ -->
+<div class="slide dark">
+    <div class="section-label">The Complete Loop</div>
+    <h2 class="headline">The visual feedback<br>loop, finally closed.</h2>
+    <p class="subhead" style="color:rgba(255,255,255,0.70); max-width:54ch;">
+        Three operations compose into a tight, repeatable workflow.
+        Each step is precise. Nothing is lost in verbal translation.
+    </p>
+    <div class="loop">
+        <div class="loop-step" style="background:rgba(52,152,219,0.2); border-color:#3498DB; color:#7EC8F5;">analyze mockup</div>
+        <div class="loop-arrow">→</div>
+        <div class="loop-step" style="background:rgba(255,255,255,0.06); border-color:rgba(255,255,255,0.2); color:rgba(255,255,255,0.85);">implement</div>
+        <div class="loop-arrow">→</div>
+        <div class="loop-step" style="background:rgba(255,255,255,0.06); border-color:rgba(255,255,255,0.2); color:rgba(255,255,255,0.85);">screenshot</div>
+        <div class="loop-arrow">→</div>
+        <div class="loop-step" style="background:rgba(155,89,182,0.2); border-color:#9B59B6; color:#D7A8F0;">compare</div>
+        <div class="loop-arrow">→</div>
+        <div class="loop-step" style="background:rgba(255,255,255,0.06); border-color:rgba(255,255,255,0.2); color:rgba(255,255,255,0.85);">fix precisely</div>
+        <div class="loop-arrow">→</div>
+        <div class="loop-step" style="background:rgba(245,197,24,0.15); border-color:var(--banana); color:var(--banana);">done ✓</div>
+    </div>
+    <div class="halves" style="margin-top: clamp(20px,3vh,36px);">
+        <div class="card dark-card">
+            <h3>Before: verbal approximation</h3>
+            <p>"The button looks slightly too big and the font might be wrong."
+               Four iterations to converge. Maybe.</p>
+        </div>
+        <div class="card dark-card">
+            <h3>After: named differences</h3>
+            <p>"Button padding is 12px, target is 8px. Font weight is 400, should be 600."
+               One iteration. Done.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 9 · Impact
+════════════════════════════════════════════ -->
+<div class="slide">
+    <div class="section-label">Impact</div>
+    <h2 class="headline">Precision has<br>a compounding effect.</h2>
+    <p class="subhead">
+        Every time a comparison replaces a description, every time
+        a reference image guides generation, every time analysis
+        names a component — iteration cycles collapse.
+    </p>
+    <div class="thirds" style="margin-top: clamp(20px,3vh,36px);">
+        <div class="card">
+            <span class="icon">🎯</span>
+            <h3>First-pass accuracy</h3>
+            <p>Semantic component names from <code>analyze</code> feed directly
+               into implementation prompts. The AI builds what was described,
+               not what was interpreted.</p>
+        </div>
+        <div class="card accent">
+            <span class="icon">⚡</span>
+            <h3>Collapse the diff cycle</h3>
+            <p><code>compare</code> turns a 5-round visual review into
+               one targeted fix list. Differences are named, not guessed.
+               You implement once.</p>
+        </div>
+        <div class="card">
+            <span class="icon">🔗</span>
+            <h3>Style stays coherent</h3>
+            <p>Reference-guided <code>generate</code> keeps new assets
+               inside your existing visual language. No style drift
+               across an evolving project.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 10 · Call to Action
+════════════════════════════════════════════ -->
+<div class="slide banana center">
+    <div class="section-label">Get Started</div>
+    <h2 class="headline">Add vision to<br>your Amplifier session.</h2>
+    <p class="subhead" style="max-width:48ch;">
+        One bundle include. One <code>GOOGLE_API_KEY</code>.
+        Three operations that change how you build with AI.
+    </p>
+    <div class="code-block" style="background:rgba(0,0,0,0.12); color:var(--ink); text-align:left; max-width:520px;">
+<span style="opacity:0.55;"># .amplifier/bundle.md</span>
+<span style="font-weight:700;">includes:</span>
+  - bundle: git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main</div>
+    <div class="cta-block" style="justify-content:center;">
+        <a class="btn btn-primary" href="https://github.com/microsoft/amplifier-module-tool-nano-banana">
+            View on GitHub
+        </a>
+        <a class="btn btn-secondary" href="https://aistudio.google.com/apikey" target="_blank">
+            Get Gemini API Key
+        </a>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 11 · Sources & Methodology (MANDATORY)
+════════════════════════════════════════════ -->
+<div class="slide dark">
+    <div class="section-label">Sources &amp; Methodology</div>
+    <h2 class="medium-headline" style="color:var(--white);">Research trail.</h2>
+    <ul class="sources-list" style="margin-top: clamp(16px,2.5vh,24px);">
+        <li>
+            <div>
+                <strong style="color:var(--white);">Repository:</strong>
+                <code>microsoft/amplifier-module-tool-nano-banana</code> — primary source
+                for all capability descriptions, code line counts, and feature status.
+            </div>
+        </li>
+        <li>
+            <div>
+                <strong style="color:var(--white);">Code analysis:</strong>
+                <code>amplifier_module_tool_nano_banana/tool.py</code> — tool schema,
+                operation implementations, model binding (<code>gemini-3-pro-image-preview</code>),
+                <code>reference_image_path</code> parameter, hook events.
+            </div>
+        </li>
+        <li>
+            <div>
+                <strong style="color:var(--white);">Git log:</strong>
+                5 commits reviewed — image generation added, VLM model made configurable,
+                reference image support added, story bundle composed in. All dates and
+                feature attributions verified against commit messages.
+            </div>
+        </li>
+        <li>
+            <div>
+                <strong style="color:var(--white);">Usage examples:</strong>
+                <code>USAGE_EXAMPLES.md</code> and <code>tests/</code> — prompt patterns,
+                operation contract, session transcript sample.
+            </div>
+        </li>
+        <li>
+            <div>
+                <strong style="color:var(--white);">Feature status:</strong>
+                Active — main branch, clean working tree as of February 27, 2026.
+            </div>
+        </li>
+        <li>
+            <div>
+                <strong style="color:var(--white);">Core size:</strong>
+                ~150 lines verified by reading <code>tool.py</code> and
+                <code>__init__.py</code> directly. No inflation.
+            </div>
+        </li>
+    </ul>
+    <p class="small-text" style="margin-top: clamp(16px,2.5vh,24px); color:rgba(255,255,255,0.35);">
+        Story authored February 27, 2026 · amplifier-bundle-stories archetype: Problem-Solution-Impact
+    </p>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     Navigation
+════════════════════════════════════════════ -->
+<div class="nav" id="nav"></div>
+<div class="slide-counter" id="counter"></div>
+<a href="index.html" class="more-stories">More Amplifier Stories</a>
+
+<script>
+    const slides = document.querySelectorAll('.slide');
+    const navEl = document.getElementById('nav');
+    const counterEl = document.getElementById('counter');
+    let current = 0;
+
+    function goTo(n) {
+        slides[current].classList.remove('active');
+        current = Math.max(0, Math.min(n, slides.length - 1));
+        slides[current].classList.add('active');
+        slides[current].scrollTop = 0;
+        document.querySelectorAll('.nav-dot').forEach((d, i) => {
+            d.classList.toggle('active', i === current);
+        });
+        counterEl.textContent = (current + 1) + ' / ' + slides.length;
+        // Update counter color based on slide type
+        const isDark = slides[current].classList.contains('dark');
+        const isBanana = slides[current].classList.contains('banana');
+        counterEl.style.color = (isDark || isBanana)
+            ? 'rgba(0,0,0,0.40)'
+            : 'rgba(0,0,0,0.30)';
+    }
+
+    // Build dots
+    slides.forEach((_, i) => {
+        const d = document.createElement('button');
+        d.className = 'nav-dot' + (i === 0 ? ' active' : '');
+        d.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+        d.addEventListener('click', () => goTo(i));
+        navEl.appendChild(d);
+    });
+    counterEl.textContent = '1 / ' + slides.length;
+
+    // Keyboard navigation
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+            e.preventDefault(); goTo(current + 1);
+        }
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            e.preventDefault(); goTo(current - 1);
+        }
+    });
+
+    // Click navigation (left half = back, right half = forward)
+    document.addEventListener('click', e => {
+        if (e.target.closest('.nav, .more-stories, .btn, a')) return;
+        goTo(e.clientX < window.innerWidth / 2 ? current - 1 : current + 1);
+    });
+
+    // Touch/swipe navigation
+    let touchStartX = 0, touchStartY = 0;
+    document.addEventListener('touchstart', e => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+    document.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+            goTo(dx < 0 ? current + 1 : current - 1);
+        }
+    }, { passive: true });
+</script>
+</body>
+</html>
