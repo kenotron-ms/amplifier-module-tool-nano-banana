@@ -8,7 +8,66 @@ VLM tool for mockup-to-code workflows using Google's Gemini vision model.
 - **compare**: Two image comparison (mockup vs implementation, match %, visual differences)
 - **generate**: Create images from text descriptions using Gemini's image generation
 
-## Installation
+---
+
+## App Bundle — Use It Anywhere
+
+This repo ships as a ready-to-use **Amplifier app bundle**. No installation required — just point Amplifier at the repo and go.
+
+### Quick Start
+
+```bash
+export GOOGLE_API_KEY="your-api-key-here"
+
+amplifier run \
+  --bundle git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main \
+  "Analyze mockups/design.png and tell me all the UI components"
+```
+
+### What You Get
+
+- `tool-nano-banana` available in every session (analyze, compare, generate)
+- A `nano-banana-expert` agent for full mockup-to-code workflows
+- All standard foundation tools (filesystem, bash, web search) included
+- `GOOGLE_API_KEY` is the only setup required
+
+### Compose Into Your Own Bundle
+
+Add Nano Banana's VLM capabilities to an existing bundle:
+
+```yaml
+# your-bundle.md
+includes:
+  - bundle: git+https://github.com/microsoft/amplifier-foundation@main
+  - bundle: git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main
+```
+
+Or include just the behavior (tool + agent, without overriding your system prompt):
+
+```yaml
+includes:
+  - bundle: git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main#subdirectory=behaviors/nano-banana.yaml
+```
+
+### Bundle Structure
+
+```
+amplifier-module-tool-nano-banana/
+├── bundle.md                          # Root app bundle entry point
+├── behaviors/
+│   └── nano-banana.yaml               # Reusable behavior (tool + agent + awareness)
+├── agents/
+│   └── nano-banana-expert.md          # Context-sink expert for VLM workflows
+└── context/
+    ├── instructions.md                # Lightweight system prompt content
+    └── nano-banana-awareness.md       # Delegation awareness pointer
+```
+
+---
+
+## Installation (Module Only)
+
+If you want to use `tool-nano-banana` in your own bundle without using this one as an app bundle:
 
 ```bash
 # Install from git
@@ -17,6 +76,14 @@ uv pip install git+https://github.com/microsoft/amplifier-module-tool-nano-banan
 # Or local development
 cd amplifier-module-tool-nano-banana
 uv pip install -e .
+```
+
+Then in your bundle YAML:
+
+```yaml
+tools:
+  - module: tool-nano-banana
+    source: git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main
 ```
 
 ## Configuration
@@ -29,35 +96,13 @@ export GOOGLE_API_KEY="your-api-key-here"
 
 Get an API key from: https://aistudio.google.com/apikey
 
-## Usage in Amplifier
-
-### In Bundle Configuration
-
-```yaml
-tools:
-  - module: tool-nano-banana
-    # No additional config needed - uses GOOGLE_API_KEY from environment
-```
-
-### In Agent Sessions
-
-**Analyze a mockup:**
-```
-Use nano-banana to analyze mockups/design.png:
-"Identify all UI components, their layout, and spacing patterns"
-```
-
-**Compare mockup with implementation:**
-```
-Use nano-banana to compare mockups/original.png with output/screenshot.png:
-"What is the visual match percentage? List the top 3 differences."
-```
+---
 
 ## Operations
 
 ### analyze
 
-Analyze a single image with VLM.
+Deep image analysis — identify components, layout, typography, colors.
 
 **Input:**
 ```json
@@ -84,7 +129,7 @@ Analyze a single image with VLM.
 
 ### compare
 
-Compare two images with VLM.
+Side-by-side visual diff between two images.
 
 **Input:**
 ```json
@@ -114,7 +159,7 @@ Compare two images with VLM.
 
 ### generate
 
-Generate images from text descriptions using Gemini's image generation model.
+Text-to-image generation via Gemini.
 
 **Input:**
 ```json
@@ -138,6 +183,7 @@ Generate images from text descriptions using Gemini's image generation model.
 **Parameters:**
 - `output_path` (required): Where to save the generated image(s). Supports `.png` and `.jpg/.jpeg`
 - `number_of_images` (optional): Number of images to generate (1-4, default: 1)
+- `reference_image_path` (optional): Reference image to guide generation style
 - When generating multiple images, they're saved with suffixes: `image_1.png`, `image_2.png`, etc.
 
 **Example prompts:**
@@ -145,6 +191,8 @@ Generate images from text descriptions using Gemini's image generation model.
 - "Hero section with large typography and abstract background"
 - "Mobile app navigation bar with icons for home, search, profile"
 - "Data visualization dashboard with multiple chart types"
+
+---
 
 ## Use Cases
 
@@ -173,16 +221,7 @@ result = await session.call_tool("nano-banana", {
 result = await session.call_tool("nano-banana", {
     "operation": "analyze",
     "image_path": "mockups/design.png",
-    "prompt": "Describe the font characteristics for the title 'Meditations': serif classification, stroke contrast, proportions"
-})
-```
-
-### Icon Analysis
-```python
-result = await session.call_tool("nano-banana", {
-    "operation": "analyze",
-    "image_path": "mockups/design.png",
-    "prompt": "Describe what the navigation icons LOOK like visually (shapes, not concepts)"
+    "prompt": "Describe the font characteristics for the title: serif classification, stroke contrast, proportions"
 })
 ```
 
@@ -205,15 +244,19 @@ result = await session.call_tool("nano-banana", {
 # Results: mockups/variations_1.png, mockups/variations_2.png, mockups/variations_3.png
 ```
 
+---
+
 ## Why This Tool?
 
 **Independent:** Not dependent on upstream `amplifier-module-image-generation` changes
 
-**Focused:** Only VLM analysis/comparison (what mockup-to-code needs)
+**Focused:** Only VLM analysis/comparison/generation (what mockup-to-code needs)
 
-**Simple:** ~150 lines of code, easy to understand and modify
+**Simple:** ~150 lines of core logic, easy to understand and modify
 
-**Flexible:** Works standalone or in Amplifier bundles/recipes
+**Flexible:** Works standalone, as an app bundle, or composed into other bundles
+
+---
 
 ## Development
 

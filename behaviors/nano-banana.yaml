@@ -1,0 +1,16 @@
+bundle:
+  name: nano-banana-behavior
+  version: 0.1.0
+  description: Adds Gemini VLM capabilities — image analysis, comparison, and generation
+
+tools:
+  - module: tool-nano-banana
+    source: git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main
+
+agents:
+  include:
+    - nano-banana:agents/nano-banana-expert
+
+context:
+  include:
+    - nano-banana:context/nano-banana-awareness.md
