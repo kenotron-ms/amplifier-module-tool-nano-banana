@@ -2,6 +2,24 @@
 
 VLM tool for mockup-to-code workflows using Google's Gemini vision model.
 
+## Quick Start (Recommended)
+
+Install as an app bundle — one command, works in every Amplifier session:
+
+```bash
+amplifier bundle add git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main --app
+```
+
+Set your Google API key:
+
+```bash
+export GOOGLE_API_KEY="your-api-key-here"
+```
+
+Get an API key from: https://aistudio.google.com/apikey
+
+That's it. Every session from now on has access to `nano-banana`.
+
 ## Features
 
 - **analyze**: Single image analysis (identify components, fonts, colors, layout)
@@ -68,6 +86,35 @@ amplifier-module-tool-nano-banana/
 ## Installation (Module Only)
 
 If you want to use `tool-nano-banana` in your own bundle without using this one as an app bundle:
+
+### As an App Bundle (Recommended)
+
+Install once, available in every Amplifier session:
+
+```bash
+amplifier bundle add git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main --app
+```
+
+Or add to your `~/.amplifier/settings.yaml` manually:
+
+```yaml
+default_bundle: git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main
+```
+
+### Compose into Your Bundle
+
+If you're building your own bundle, include it as a dependency:
+
+```yaml
+# In your bundle.md frontmatter
+includes:
+  - bundle: foundation
+  - bundle: git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main
+```
+
+### Python Package (Advanced)
+
+For direct Python usage or development:
 
 ```bash
 # Install from git
