@@ -7,7 +7,7 @@ VLM tool for mockup-to-code workflows using Google's Gemini vision model.
 Install as an app bundle — one command, works in every Amplifier session:
 
 ```bash
-amplifier bundle add git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main --app
+amplifier bundle add git+https://github.com/kenotron-ms/amplifier-module-tool-nano-banana@main --app
 ```
 
 Set your Google API key:
@@ -38,7 +38,7 @@ This repo ships as a ready-to-use **Amplifier app bundle**. No installation requ
 export GOOGLE_API_KEY="your-api-key-here"
 
 amplifier run \
-  --bundle git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main \
+  --bundle git+https://github.com/kenotron-ms/amplifier-module-tool-nano-banana@main \
   "Analyze mockups/design.png and tell me all the UI components"
 ```
 
@@ -57,14 +57,14 @@ Add Nano Banana's VLM capabilities to an existing bundle:
 # your-bundle.md
 includes:
   - bundle: git+https://github.com/microsoft/amplifier-foundation@main
-  - bundle: git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main
+  - bundle: git+https://github.com/kenotron-ms/amplifier-module-tool-nano-banana@main
 ```
 
 Or include just the behavior (tool + agent, without overriding your system prompt):
 
 ```yaml
 includes:
-  - bundle: git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main#subdirectory=behaviors/nano-banana.yaml
+  - bundle: git+https://github.com/kenotron-ms/amplifier-module-tool-nano-banana@main#subdirectory=behaviors/nano-banana.yaml
 ```
 
 ### Bundle Structure
@@ -92,13 +92,13 @@ If you want to use `tool-nano-banana` in your own bundle without using this one 
 Install once, available in every Amplifier session:
 
 ```bash
-amplifier bundle add git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main --app
+amplifier bundle add git+https://github.com/kenotron-ms/amplifier-module-tool-nano-banana@main --app
 ```
 
 Or add to your `~/.amplifier/settings.yaml` manually:
 
 ```yaml
-default_bundle: git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main
+default_bundle: git+https://github.com/kenotron-ms/amplifier-module-tool-nano-banana@main
 ```
 
 ### Compose into Your Bundle
@@ -109,7 +109,7 @@ If you're building your own bundle, include it as a dependency:
 # In your bundle.md frontmatter
 includes:
   - bundle: foundation
-  - bundle: git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main
+  - bundle: git+https://github.com/kenotron-ms/amplifier-module-tool-nano-banana@main
 ```
 
 ### Python Package (Advanced)
@@ -118,7 +118,7 @@ For direct Python usage or development:
 
 ```bash
 # Install from git
-uv pip install git+https://github.com/microsoft/amplifier-module-tool-nano-banana
+uv pip install git+https://github.com/kenotron-ms/amplifier-module-tool-nano-banana
 
 # Or local development
 cd amplifier-module-tool-nano-banana
@@ -130,7 +130,7 @@ Then in your bundle YAML:
 ```yaml
 tools:
   - module: tool-nano-banana
-    source: git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main
+    source: git+https://github.com/kenotron-ms/amplifier-module-tool-nano-banana@main
 ```
 
 ## Configuration

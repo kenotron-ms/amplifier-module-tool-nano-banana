@@ -34,9 +34,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/microsoft/amplifier-module-tool-nano-banana"
-Repository = "https://github.com/microsoft/amplifier-module-tool-nano-banana"
-Issues = "https://github.com/microsoft/amplifier-module-tool-nano-banana/issues"
+Homepage = "https://github.com/kenotron-ms/amplifier-module-tool-nano-banana"
+Repository = "https://github.com/kenotron-ms/amplifier-module-tool-nano-banana"
+Issues = "https://github.com/kenotron-ms/amplifier-module-tool-nano-banana/issues"
 
 [project.entry-points."amplifier.modules"]
 tool-nano-banana = "amplifier_module_tool_nano_banana:mount"

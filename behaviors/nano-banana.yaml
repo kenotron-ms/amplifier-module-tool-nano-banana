@@ -5,7 +5,7 @@ bundle:
 
 tools:
   - module: tool-nano-banana
-    source: git+https://github.com/microsoft/amplifier-module-tool-nano-banana@main
+    source: git+https://github.com/kenotron-ms/amplifier-module-tool-nano-banana@main
 
 agents:
   include:
